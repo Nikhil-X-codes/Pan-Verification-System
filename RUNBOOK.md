@@ -4,6 +4,8 @@
 
 Run `make up`, then check `http://localhost:8080/api/health` and `http://localhost:8001/health`. The page is at `http://localhost:8080`. Run `make down` to stop. Never add `--volumes` to the production down command: `/data` holds idempotency, ledger and attempt counters. `docker compose -f deploy/docker-compose.yml logs --tail=100` shows lifecycle and errors without access logs.
 
+If those host ports are occupied, set `GATEWAY_PORT` and `BACKEND_PORT` before `make up`; the internal gateway and backend ports stay at 8080 and 8000. Behind an HTTPS inspecting proxy, mount its trusted CA only during image builds with `docker build --secret id=proxy_ca,src=<certificate-path>` for each Dockerfile. Keep TLS verification enabled.
+
 ## Configure and roll back
 
 Use `PRIMARY=b FAULT_VENDORS= CRASH_POINT= make up` for a healthy-provider configuration. For a release, build and retain images tagged with its immutable release ID using `IMAGE_TAG=<release> make up`. Preserve the prior backend and gateway image tags. Roll back using `IMAGE_TAG=<previous-release> docker compose -f deploy/docker-compose.yml up -d --no-build --wait`. Keep the same volume, check both health URLs and `/api/reconcile`, then verify a sample with a fresh key. The initial schema has no migrations; review database compatibility before later schema changes.

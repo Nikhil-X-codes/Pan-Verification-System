@@ -29,7 +29,7 @@ services:
   backend1:
     <<: *backend
     ports:
-      - "8001:8000"
+      - "${BACKEND_PORT:-8001}:8000"
   backend2:
     <<: *backend
   gateway:
@@ -38,14 +38,14 @@ services:
       context: ..
       dockerfile: deploy/Dockerfile.gateway
     ports:
-      - "8080:8080"
+      - "${GATEWAY_PORT:-8080}:8080"
     depends_on:
       backend1:
         condition: service_healthy
       backend2:
         condition: service_healthy
     healthcheck:
-      test: [CMD, wget, -q, -O, /dev/null, "http://127.0.0.1:8080/api/health"]
+      test: [CMD, wget, -Y, "off", -q, -O, /dev/null, "http://127.0.0.1:8080/api/health"]
       interval: 3s
       timeout: 3s
       retries: 10

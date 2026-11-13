@@ -67,6 +67,8 @@ WAL uses `synchronous=NORMAL`: committed transactions survive process terminatio
 | `FAULT_VENDORS` | `a` | Empty, `a`, `b`, or `a,b` |
 | `CRASH_POINT` | empty | `after_vendor_call` or `after_vendor_persist` |
 | `IMAGE_TAG` | `local` | Compose image tag; use immutable release tags for rollback |
+| `BACKEND_PORT` | `8001` | Published direct backend port |
+| `GATEWAY_PORT` | `8080` | Published gateway port |
 
 `ABCPE1234F` is found; `ABCPE0000F` is not found. On a fault-selected provider, `ABCPE9999F` sleeps five seconds and `ABCPE8888F` raises an exception. On other providers those two PANs are found. Ordinary calls take 50 ms. A valid not-found result never triggers failover.
 
@@ -82,7 +84,8 @@ Validated with Docker Desktop's Linux/WSL2 backend on a two-CPU Windows host, us
 - Headless Chrome passed production found and not-found flows through Nginx, keyboard submission with visible focus, double-click suppression, masked localStorage, desktop rendering and 360 px mobile rendering without horizontal overflow or browser errors. Placeholder text contrast measured 4.69:1 and the input border 3.70:1. Screenshots were inspected locally.
 - Production JavaScript measured 48,884 bytes gzipped, approximately 47.74 KiB. `npm run build` prints the current exact measurement and rejects bundles at or above 200,000 bytes.
 - `make load` passed against freshly built images with `PRIMARY=a`, `FAULT_VENDORS=` and `CRASH_POINT=`. It sent 500 concurrent requests and measured p50/p95/p99 of 221.61/306.85/325.66 ms, exactly 50 new charges, exactly 50 vendor attempts and empty reconciliation. The generator uses aiohttp and uvloop on Linux; it does not reduce concurrency, prewarm connections or relax the 400 ms assertion.
-- The backend image measured 242,056,977 bytes, below 250,000,000 bytes, and runs as user `app`. The final gateway image contains no Node executable. Nginx configuration validation passed.
+- A later managed Linux host with three CPUs showed variable load latency: gateway p95 was 519.95 ms on its first batch, then 334.08 and 312.96 ms, and a later `make load` batch measured 663.99 ms. Every batch still produced exactly 50 charges, 50 attempts and empty reconciliation. The 400 ms gate therefore needs measurement on the target host under its expected load.
+- The backend image measured 242,056,977 bytes on Docker Desktop and 166,502,217 bytes on the managed Linux host, both below 250,000,000 bytes, and runs as user `app`. The final gateway image contains no Node executable. Nginx configuration validation passed.
 
 The CI build paths were checked locally and the workflow runs the same Make targets, checks image size and runtime contents, caches Docker dependency layers and uploads load-test JSON. The repository is [Pan-Verification-System](https://github.com/Nikhil-X-codes/Pan-Verification-System), with separate feature commits for the backend, frontend, Docker deployment, CI and operating documentation. This documentation records local validation, not a hosted CI result. Verify the GitHub Actions run before submission. The assignment email remains a separate owner action.
 
