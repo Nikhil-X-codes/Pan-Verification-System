@@ -1,0 +1,14 @@
+.tools/
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+*.sqlite3*
+.env
+node_modules/
+dist/
+coverage/
+load-result.json
+*.log
+*.tsbuildinfo
+/idto-fullstack-intern-assignment.pdf
