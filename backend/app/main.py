@@ -119,10 +119,7 @@ def create_app() -> FastAPI:
 
                 task.add_done_callback(completed)
             try:
-                if owner:
-                    result = await asyncio.shield(task)
-                else:
-                    result = await asyncio.wait_for(asyncio.shield(task), max(0, deadline - time.monotonic()))
+                result = await asyncio.wait_for(asyncio.shield(task), max(0, deadline - time.monotonic() + (0.1 if owner else 0)))
             except TimeoutError:
                 break
             if not owner and result.status_code == 503:
