@@ -1,0 +1,53 @@
+name: idto
+x-backend: &backend
+  image: idto-backend:${IMAGE_TAG:-local}
+  build:
+    context: ..
+    dockerfile: deploy/Dockerfile.backend
+    target: runtime
+  environment:
+    DATABASE_PATH: ${DATABASE_PATH:-/data/pan.sqlite3}
+    PRIMARY: ${PRIMARY:-a}
+    FAULT_VENDORS: ${FAULT_VENDORS-a}
+    CRASH_POINT: ${CRASH_POINT:-}
+  volumes:
+    - database:/data
+  healthcheck:
+    test:
+      [
+        CMD,
+        python,
+        -c,
+        "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)",
+      ]
+    interval: 3s
+    timeout: 3s
+    retries: 10
+    start_period: 5s
+  stop_grace_period: 5s
+services:
+  backend1:
+    <<: *backend
+    ports:
+      - "8001:8000"
+  backend2:
+    <<: *backend
+  gateway:
+    image: idto-gateway:${IMAGE_TAG:-local}
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      backend1:
+        condition: service_healthy
+      backend2:
+        condition: service_healthy
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, "http://127.0.0.1:8080/api/health"]
+      interval: 3s
+      timeout: 3s
+      retries: 10
+volumes:
+  database:

@@ -1,0 +1,11 @@
+name: idto-test
+services:
+  backend-test:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.backend
+      target: test
+  frontend-test:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.frontend-test

@@ -1,20 +1,19 @@
 # PAN Verification System
 
-Delivery milestone 2 of 5: the SQLite-backed FastAPI service and React verification page. The implementation is complete locally; source is being published in batches at least four hours apart. See [PUBLISHING.md](PUBLISHING.md) for delivery and commit guidelines.
+Delivery milestone 3 of 5: the SQLite-backed FastAPI service, React verification page and complete Docker deployment. Source is published at least four hours apart. See [PUBLISHING.md](PUBLISHING.md) for commit and timing guidelines.
 
-## Run locally
+## Run the stack
 
-1. Install Python 3.11+ and Node 22.4+.
-2. Run `python -m pip install -r backend/requirements-dev.txt`.
-3. Run `python -m uvicorn app.main:app --app-dir backend --host 127.0.0.1 --port 8000 --no-access-log`.
-4. In another terminal run `cd frontend`, `npm ci`, then `npm run dev`.
-5. Open `http://localhost:5173`; Vite proxies `/api` to the backend.
-6. Run `python -m pytest backend/tests -q` from the root and `npm test` inside `frontend`.
+1. Start Docker Desktop or Docker Engine, with Compose v2, GNU Make and Bash on PATH.
+2. Copy `.env.example` to `.env` if defaults need changing.
+3. Run `make up` and open `http://localhost:8080`.
+4. Direct backend health is `http://localhost:8001/health`.
+5. Run `make test` for isolated backend and frontend tests, with cleanup.
+6. Run `FAULT_VENDORS= CRASH_POINT= make up`, then `make load` on an idle stack.
+7. Run `make down` to stop while retaining the database volume.
 
-## Included features
+The gateway serves the production React build and balances `/api/` across two non-root backend replicas. Both mount one persistent SQLite volume. All eight primary/fault settings and both Docker crash drills passed locally. The backend image measured 242,056,977 bytes. The gateway contains no Node executable.
 
-The backend provides validation, asynchronous fake providers, persistent idempotency, atomic billing, reconciliation and crash recovery. Its 34 local tests passed over real HTTP.
+The local test run passed 34 backend cases and 15 frontend cases. The 500-request gateway load test measured p95 306.85 ms with exactly 50 new charges, 50 vendor attempts and empty reconciliation. These are local results, not a hosted CI claim.
 
-React 18 uses TypeScript strict mode, live validation, UUID attempt keys, safe retries, bounded automatic retries, fast-response double-click protection and masked history. Fifteen frontend tests passed. Keyboard submission, visible focus and a 360 px mobile layout were checked in Chrome. Production JavaScript measured 48,884 bytes gzipped.
-
-Docker, Nginx and Make targets arrive in batch 3, GitHub Actions in batch 4, and the operating guide and complete acceptance documentation in batch 5. Their absence here is intentional.
+GitHub Actions arrives in batch 4. The final operating guide, full README and acceptance work plan follow in batch 5.
