@@ -1,0 +1,53 @@
+name: assignment
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/bake-action@v6
+        with:
+          source: .
+          files: deploy/compose.test.yml
+          load: true
+          set: |
+            *.context=.
+            backend-test.cache-from=type=gha,scope=backend-test
+            backend-test.cache-to=type=gha,mode=max,scope=backend-test
+            frontend-test.cache-from=type=gha,scope=frontend-test
+            frontend-test.cache-to=type=gha,mode=max,scope=frontend-test
+      - run: make test
+      - uses: docker/bake-action@v6
+        with:
+          source: .
+          files: deploy/docker-compose.yml
+          load: true
+          set: |
+            *.context=.
+            backend1.cache-from=type=gha,scope=backend
+            backend1.cache-to=type=gha,mode=max,scope=backend
+            backend2.cache-from=type=gha,scope=backend
+            backend2.cache-to=type=gha,mode=max,scope=backend
+            gateway.cache-from=type=gha,scope=gateway
+            gateway.cache-to=type=gha,mode=max,scope=gateway
+      - run: FAULT_VENDORS= CRASH_POINT= make up
+      - run: |
+          bytes=$(docker image inspect idto-backend:local --format '{{.Size}}')
+          test "$bytes" -lt 250000000
+          test "$(docker image inspect idto-backend:local --format '{{.Config.User}}')" = app
+          docker compose -f deploy/docker-compose.yml exec -T gateway sh -c '! command -v node'
+      - run: make load
+      - if: always()
+        run: docker compose -f deploy/docker-compose.yml cp backend1:/tmp/load-result.json load-result.json
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test
+          path: load-result.json
+          if-no-files-found: warn
+      - if: always()
+        run: docker compose -f deploy/docker-compose.yml logs && make down
