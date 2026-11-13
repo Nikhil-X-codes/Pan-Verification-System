@@ -1,12 +1,14 @@
 # Publishing and commit guidelines
 
-This repository is delivered in three feature batches, with at least four hours between successful pushes. The four-hour instruction replaces the earlier two-hour plan.
+This repository is delivered in five feature commits, with at least four hours between successful pushes. This replaces the earlier three-batch plan and two-hour interval.
 
 | Batch | Earliest delivery | Scope |
 | --- | --- | --- |
 | 1 | First successful push | SQLite verification backend, fake providers, idempotency, billing, recovery tests and backend setup |
 | 2 | Four hours after batch 1 | React verification page, validation, retry handling, masked history, accessibility and frontend tests |
-| 3 | Four hours after batch 2 | Docker replicas, Nginx gateway, Make targets, CI, operating guide and complete acceptance documentation |
+| 3 | Four hours after batch 2 | Docker replicas, Nginx gateway, Make targets and environment configuration |
+| 4 | Four hours after batch 3 | GitHub Actions tests, image checks, dependency caching and load-test artifacts |
+| 5 | Four hours after batch 4 | Operating guide, complete README, work plan and acceptance records |
 
 The implementation was completed and tested locally before these delivery batches were prepared. The previous local Git metadata was unavailable when publishing began, so these are new commits organized from the existing source. Their creation times are genuine; the publishing intervals do not imply additional development happened between pushes.
 
@@ -25,4 +27,4 @@ The local publisher records each successful remote update and waits at least fou
 
 Future delivery requires this Windows computer to be awake, the scheduled user's session to be logged in, internet access and working Git credentials. A missed run is handled when the task can run again; the next four-hour interval starts from that successful push, so delayed batches are not sent together.
 
-The local schedule, frozen commit IDs and execution log are kept under the ignored `.tools/publishing` directory. The publisher disables its own scheduled task after the third batch.
+The local schedule, frozen commit IDs and execution log are kept under the ignored `.tools/publishing` directory. The publisher disables its own scheduled task after the fifth batch.
