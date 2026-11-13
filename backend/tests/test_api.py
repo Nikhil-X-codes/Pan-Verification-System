@@ -26,6 +26,11 @@ def test_guards_have_no_side_effects(service):
     assert missing.status_code == 400
     assert missing.json() == {"status": "error", "error_code": "IDTO_001", "message": "Idempotency-Key header is required.", "billed": False}
     assert service.post("/verify/pan", content="invalid").json()["error_code"] == "IDTO_001"
+    for key in (FOUND, f"attempt-{FOUND.lower()}", "x" * 129):
+        blocked = verify(service, key=key)
+        assert blocked.status_code == 400
+        assert blocked.json()["error_code"] == "IDTO_003"
+        assert blocked.json()["billed"] is False
     for invalid in ("", "ABCXE1234F", "ABCPE123F", None, 123, "ABCPE１２３４F"):
         response = verify(service, pan=invalid)
         assert response.status_code == 422

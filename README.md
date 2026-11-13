@@ -32,6 +32,7 @@ Run backend tests with `python -m pytest backend/tests -q`; run `npm test` and `
 | 200 | Found | `null` | true |
 | 200 | Not found | `IDTO_202` | true |
 | 400 | Missing key | `IDTO_001` | false |
+| 400 | Key contains a PAN or exceeds 128 characters | `IDTO_003` | false |
 | 422 | Invalid PAN or JSON body | `IDTO_002` | false |
 | 409 | Key belongs to another PAN | `IDTO_011` | false |
 | 409 | Existing work exceeds this request's deadline | `IDTO_010` | false |
@@ -53,7 +54,7 @@ Within a process, identical requests share an active task and its completed succ
 
 Requests younger than 10 seconds wait and poll the persistent record. Requests older than 10 seconds can be reclaimed with a new owner token. A saved raw response survives reclamation and avoids another provider call. Vendor calls have a two-second cap and share the three-second deadline measured at ASGI request arrival. Provider attempt counters commit before the call; both timeouts and exceptions count. Storage contention returns an actionable 503 without exposing the database exception.
 
-WAL uses `synchronous=NORMAL`: committed transactions survive process termination, including the required crash injection. Power loss may discard recent transactions, although SQLite preserves transaction consistency. The deployment assumes one host with a local filesystem supporting SQLite locks, not a network filesystem or replicas on different hosts.
+WAL uses `synchronous=NORMAL`: committed transactions survive process termination, including the required crash injection. Power loss may discard recent transactions, although SQLite preserves transaction consistency. The deployment assumes one host with a local filesystem supporting SQLite locks, not a network filesystem or replicas on different hosts. Idempotency keys are limited to 128 characters and rejected if they contain a PAN, since keys are stored and shown by reconciliation.
 
 ## Configuration and samples
 

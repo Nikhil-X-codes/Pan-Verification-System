@@ -92,6 +92,8 @@ def create_app() -> FastAPI:
         key = request.headers.get("Idempotency-Key")
         if not key or not key.strip():
             return error("IDTO_001", "Idempotency-Key header is required.", 400)
+        if len(key) > 128 or re.search(r"[A-Z]{3}[PCHFATBLJG][A-Z][0-9]{4}[A-Z]", key, re.IGNORECASE):
+            return error("IDTO_003", "Idempotency-Key must be at most 128 characters and contain no PAN.", 400)
         try:
             payload = await request.json()
             pan = payload.get("pan") if isinstance(payload, dict) else None
